@@ -1,5 +1,6 @@
+import { useNavigate, NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+
 import {
   LayoutDashboard,
   Users,
@@ -14,10 +15,14 @@ import {
 } from "lucide-react";
 
 function Sidebar() {
+  const navigate = useNavigate();
+
+  // Sidebar collapsed state
   const [collapsed, setCollapsed] = useState(() => {
     return localStorage.getItem("sidebarCollapsed") === "true";
   });
 
+  // Apply collapsed state
   useEffect(() => {
     document.documentElement.classList.toggle(
       "sidebar-collapsed",
@@ -30,19 +35,29 @@ function Sidebar() {
     );
   }, [collapsed]);
 
+  // Toggle sidebar
   const toggleSidebar = () => {
     setCollapsed((value) => !value);
   };
 
-  const handleLogout = () => {
+  // Logout
+  const handleLogout = (e) => {
+    e.preventDefault();
+
+    // Remove authentication data
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+
+    // Return to login page
+    navigate("/login", { replace: true });
   };
 
   return (
     <aside className="sidebar">
 
-      {/* LOGO */}
+      {/* =========================
+          LOGO
+      ========================== */}
       <div className="sidebar-logo">
 
         <div className="sidebar-logo-icon">
@@ -81,12 +96,14 @@ function Sidebar() {
             <PanelLeftClose size={19} />
           )}
         </button>
-
       </div>
 
-      {/* MENU */}
+      {/* =========================
+          MENU
+      ========================== */}
       <nav className="sidebar-menu">
 
+        {/* Dashboard */}
         <NavLink
           to="/dashboard"
           className="sidebar-link"
@@ -96,6 +113,7 @@ function Sidebar() {
           <span>Dashboard</span>
         </NavLink>
 
+        {/* Customers */}
         <NavLink
           to="/customers"
           className="sidebar-link"
@@ -105,6 +123,7 @@ function Sidebar() {
           <span>Customers</span>
         </NavLink>
 
+        {/* Reservations */}
         <NavLink
           to="/reservations"
           className="sidebar-link"
@@ -114,6 +133,7 @@ function Sidebar() {
           <span>Reservations</span>
         </NavLink>
 
+        {/* VIP Reservation */}
         <NavLink
           to="/vip-reservation"
           className="sidebar-link"
@@ -123,6 +143,7 @@ function Sidebar() {
           <span>VIP Reservation</span>
         </NavLink>
 
+        {/* Parking Spaces */}
         <NavLink
           to="/parking-spaces"
           className="sidebar-link"
@@ -132,6 +153,7 @@ function Sidebar() {
           <span>Parking Spaces</span>
         </NavLink>
 
+        {/* Staff */}
         <NavLink
           to="/staff"
           className="sidebar-link"
@@ -143,18 +165,20 @@ function Sidebar() {
 
       </nav>
 
-      {/* LOGOUT */}
+      {/* =========================
+          LOGOUT
+      ========================== */}
       <div className="sidebar-bottom">
 
-        <NavLink
-          to="/login"
+        <button
+          type="button"
           className="sidebar-link logout-link"
           onClick={handleLogout}
           title="Logout"
         >
           <LogOut size={20} />
           <span>Logout</span>
-        </NavLink>
+        </button>
 
       </div>
 
