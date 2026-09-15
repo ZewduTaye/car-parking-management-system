@@ -1,5 +1,7 @@
 const prisma = require("../config/database");
 
+const isValidId = (id) => Number.isInteger(id) && id > 0;
+
 // Get all customers
 const getCustomers = async (req, res) => {
   try {
@@ -26,6 +28,13 @@ const getCustomerById = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
+    if (!isValidId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid customer ID",
+      });
+    }
+
     const customer = await prisma.customer.findUnique({
       where: { id },
     });
@@ -44,7 +53,7 @@ const getCustomerById = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Unable to load customer",
     });
   }
 };
@@ -100,6 +109,13 @@ const updateCustomer = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
+    if (!isValidId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid customer ID",
+      });
+    }
+
     const { fullName, phone, email, carPlate, carModel } = req.body;
 
     const customer = await prisma.customer.update({
@@ -119,9 +135,23 @@ const updateCustomer = async (req, res) => {
       customer,
     });
   } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
+    if (error.code === "P2002") {
+      return res.status(409).json({
+        success: false,
+        message: "A customer with this car plate already exists",
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Unable to update customer",
     });
   }
 };
@@ -130,6 +160,25 @@ const updateCustomer = async (req, res) => {
 const deleteCustomer = async (req, res) => {
   try {
     const id = Number(req.params.id);
+
+    if (!isValidId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid customer ID",
+      });
+    }
+
+    const [reservationCount, vipReservationCount] = await Promise.all([
+      prisma.reservation.count({ where: { customerId: id } }),
+      prisma.vIPReservation.count({ where: { customerId: id } }),
+    ]);
+
+    if (reservationCount > 0 || vipReservationCount > 0) {
+      return res.status(409).json({
+        success: false,
+        message: "Customer cannot be deleted while reservations exist",
+      });
+    }
 
     await prisma.customer.delete({
       where: { id },
@@ -140,9 +189,16 @@ const deleteCustomer = async (req, res) => {
       message: "Customer deleted successfully",
     });
   } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found",
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Unable to delete customer",
     });
   }
 };

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { loginUser } from "../Services/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -7,12 +8,24 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
-    if (email && password) {
+    try {
+      const data = await loginUser({ email, password });
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/dashboard");
+    } catch (loginError) {
+      setError(loginError.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -69,11 +82,14 @@ function Login() {
             </div>
           </div>
 
+          {error && <p className="login-error" role="alert">{error}</p>}
+
           <button
             className="btn btn-primary login-button"
             type="submit"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? "Logging in..." : "Login"}
           </button>
 
         </form>

@@ -1,10 +1,8 @@
-const errorMiddleware = (err, req, res, next) => {
-  console.error(err);
-
-  res.status(err.statusCode || 500).json({
+const notFoundMiddleware = (req, res) => {
+  res.status(404).json({
     success: false,
-    message: err.message || "Internal server error",
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
   });
 };
 
-module.exports = errorMiddleware;
+module.exports = notFoundMiddleware;

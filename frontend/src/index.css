@@ -1,4 +1,3 @@
-
 /* =========================
    CUSTOMERS PAGE
 ========================= */
@@ -436,6 +435,7 @@
     font-size: 16px;
   }
 }
+
 /* =========================
    PARKING SPACES
 ========================= */
@@ -457,7 +457,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
-.parking-summary-card > span {
+.parking-summary-card>span {
   font-size: 30px;
 }
 
@@ -514,6 +514,7 @@
     gap: 12px;
   }
 }
+
 /* =========================
    STAFF MANAGEMENT
 ========================= */
@@ -535,7 +536,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
-.staff-summary-card > span {
+.staff-summary-card>span {
   font-size: 30px;
 }
 
@@ -608,6 +609,7 @@
     min-width: 650px;
   }
 }
+
 /* =========================
    RESPONSIVE SIDEBAR
 ========================= */
@@ -820,6 +822,7 @@
     font-size: 14px;
   }
 }
+
 /* =========================
    LOGIN PAGE
 ========================= */
@@ -934,26 +937,32 @@
     height: 60px;
     font-size: 27px;
   }
+
   .login-logo h1 {
     font-size: 24px;
   }
 }
+
 /* Small phones */
 
 @media (max-width: 380px) {
   .login-page {
     padding: 15px 10px;
   }
+
   .login-box {
     padding: 25px 18px;
   }
+
   .login-logo h1 {
     font-size: 22px;
   }
+
   .login-box .form-control {
     padding: 12px;
     font-size: 16px;
   }
+
   .login-button {
     padding: 13px;
   }
@@ -1326,6 +1335,7 @@
     display: none;
   }
 }
+
 /* =========================
    BLUE & WHITE NAVBAR
 ========================= */
@@ -1636,7 +1646,7 @@
   font-size: 12px;
 }
 
-.panel-header > svg {
+.panel-header>svg {
   color: #2563eb;
 }
 
@@ -1790,7 +1800,7 @@
   font-size: 11px;
 }
 
-.quick-action > svg {
+.quick-action>svg {
   color: #94a3b8;
 }
 
@@ -2932,14 +2942,595 @@
   }
 }
 
+/* =========================================================
+   PARKEASE MODERN UI
+   DARK / LIGHT MODE
+   COLLAPSIBLE SIDEBAR
+   ========================================================= */
 
 
+/* =========================================================
+   SMOOTH THEME TRANSITION
+   ========================================================= */
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
 
 
+/* =========================================================
+   SIDEBAR COLLAPSE BUTTON
+   ========================================================= */
+
+.sidebar-logo {
+  position: relative;
+}
+
+.sidebar-toggle {
+  margin-left: auto;
+
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 9px;
+
+  background: #f8fafc;
+  color: #64748b;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.sidebar-toggle:hover {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+
+  transform: scale(1.05);
+}
 
 
+/* =========================================================
+   COLLAPSED SIDEBAR
+   ========================================================= */
+
+@media (min-width: 601px) {
+
+  html.sidebar-collapsed .sidebar {
+    width: 78px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  html.sidebar-collapsed .main-content {
+    margin-left: 78px;
+    width: calc(100% - 78px);
+  }
+
+  /* Logo */
+
+  html.sidebar-collapsed .sidebar-logo {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  html.sidebar-collapsed .sidebar-logo-text {
+    display: none;
+  }
+
+  /* Toggle button */
+
+  html.sidebar-collapsed .sidebar-toggle {
+    position: absolute;
+
+    right: -4px;
+    top: -4px;
+
+    width: 28px;
+    height: 28px;
+
+    border-radius: 8px;
+  }
+
+  /* Menu items */
+
+  html.sidebar-collapsed .sidebar-link {
+    justify-content: center;
+
+    padding-left: 8px;
+    padding-right: 8px;
+
+    gap: 0;
+  }
+
+  html.sidebar-collapsed .sidebar-link span {
+    display: none;
+  }
+
+  html.sidebar-collapsed .sidebar-link:hover {
+    transform: none;
+  }
+
+}
 
 
+/* =========================================================
+   THEME TOGGLE BUTTON
+   ========================================================= */
+
+.theme-toggle {
+  width: 40px;
+  height: 40px;
+
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+
+  background: #ffffff;
+  color: #64748b;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+
+  transform: rotate(8deg);
+}
 
 
+/* =========================================================
+   DARK MODE - GLOBAL
+   ========================================================= */
 
+html.dark-theme,
+html.dark-theme body {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+html.dark-theme #root {
+  background: #0f172a;
+}
+
+
+/* =========================================================
+   DARK SIDEBAR
+   ========================================================= */
+
+html.dark-theme .sidebar {
+  background: #111827;
+  color: #e2e8f0;
+
+  border-right-color: #263244;
+
+  box-shadow:
+    3px 0 18px rgba(0, 0, 0, 0.25);
+}
+
+html.dark-theme .sidebar-logo {
+  border-bottom-color: #263244;
+}
+
+html.dark-theme .sidebar-logo-text strong {
+  color: #f8fafc;
+}
+
+html.dark-theme .sidebar-logo-text strong span {
+  color: #60a5fa;
+}
+
+html.dark-theme .sidebar-logo-text small {
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   DARK SIDEBAR LINKS
+   ========================================================= */
+
+html.dark-theme .sidebar-link {
+  color: #94a3b8;
+}
+
+html.dark-theme .sidebar-link:hover {
+  background: #172554;
+  color: #93c5fd;
+}
+
+html.dark-theme .sidebar-link.active {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+html.dark-theme .sidebar-bottom {
+  border-top-color: #263244;
+}
+
+html.dark-theme .logout-link:hover {
+  background: #3f1d1d;
+  color: #fca5a5;
+}
+
+
+/* =========================================================
+   DARK SIDEBAR BUTTON
+   ========================================================= */
+
+html.dark-theme .sidebar-toggle {
+  background: #1e293b;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+
+html.dark-theme .sidebar-toggle:hover {
+  background: #172554;
+  color: #93c5fd;
+  border-color: #3b82f6;
+}
+
+
+/* =========================================================
+   DARK MAIN CONTENT
+   ========================================================= */
+
+html.dark-theme .main-content {
+  background: #0f172a;
+}
+
+
+/* =========================================================
+   DARK NAVBAR
+   ========================================================= */
+
+html.dark-theme .navbar {
+  background: #111827;
+  color: #e2e8f0;
+
+  border-bottom-color: #263244;
+
+  box-shadow:
+    0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+html.dark-theme .navbar-title h1 {
+  color: #f8fafc;
+}
+
+html.dark-theme .navbar-title p {
+  color: #94a3b8;
+}
+
+html.dark-theme .navbar-user {
+  border-left-color: #263244;
+}
+
+html.dark-theme .user-info strong {
+  color: #f8fafc;
+}
+
+html.dark-theme .user-info small {
+  color: #94a3b8;
+}
+
+html.dark-theme .user-arrow {
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   DARK THEME BUTTONS
+   ========================================================= */
+
+html.dark-theme .theme-toggle,
+html.dark-theme .notification-button {
+  background: #1e293b;
+  color: #cbd5e1;
+
+  border-color: #334155;
+}
+
+html.dark-theme .theme-toggle:hover,
+html.dark-theme .notification-button:hover {
+  background: #172554;
+  color: #93c5fd;
+  border-color: #3b82f6;
+}
+
+html.dark-theme .notification-dot {
+  border-color: #1e293b;
+}
+
+
+/* =========================================================
+   DARK DASHBOARD
+   ========================================================= */
+
+html.dark-theme .dashboard-page {
+  background: #0f172a;
+}
+
+html.dark-theme .dashboard-welcome h1 {
+  color: #f8fafc;
+}
+
+html.dark-theme .dashboard-welcome p {
+  color: #94a3b8;
+}
+
+
+/* Dashboard cards */
+
+html.dark-theme .dashboard-card {
+  background: #111827;
+  border-color: #263244;
+
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.18);
+}
+
+html.dark-theme .dashboard-card-content p {
+  color: #94a3b8;
+}
+
+html.dark-theme .dashboard-card-content h2 {
+  color: #f8fafc;
+}
+
+html.dark-theme .dashboard-trend-icon {
+  color: #4ade80;
+}
+
+
+/* Dashboard panels */
+
+html.dark-theme .dashboard-panel {
+  background: #111827;
+  border-color: #263244;
+
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.18);
+}
+
+html.dark-theme .panel-header h2 {
+  color: #f8fafc;
+}
+
+html.dark-theme .panel-header p {
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   DARK PARKING OVERVIEW
+   ========================================================= */
+
+html.dark-theme .overview-info span {
+  color: #94a3b8;
+}
+
+html.dark-theme .overview-info strong {
+  color: #f8fafc;
+}
+
+html.dark-theme .overview-total {
+  background: #172554;
+}
+
+html.dark-theme .overview-total span {
+  color: #94a3b8;
+}
+
+html.dark-theme .overview-total strong {
+  color: #f8fafc;
+}
+
+html.dark-theme .overview-total p {
+  color: #94a3b8;
+}
+
+html.dark-theme .overview-bar {
+  background: #334155;
+}
+
+
+/* =========================================================
+   DARK QUICK ACTIONS
+   ========================================================= */
+
+html.dark-theme .quick-action {
+  background: #111827;
+  border-color: #334155;
+}
+
+html.dark-theme .quick-action:hover {
+  background: #172554;
+  border-color: #3b82f6;
+}
+
+html.dark-theme .quick-action strong {
+  color: #f8fafc;
+}
+
+html.dark-theme .quick-action span {
+  color: #94a3b8;
+}
+
+html.dark-theme .quick-action-icon {
+  background: #172554;
+}
+
+
+/* =========================================================
+   DARK TABLES
+   ========================================================= */
+
+html.dark-theme .customers-table-container,
+html.dark-theme .table-container,
+html.dark-theme .reservation-table-container {
+  background: #111827;
+
+  border-color: #263244;
+
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.18);
+}
+
+html.dark-theme .customers-table th,
+html.dark-theme .table-container th,
+html.dark-theme .reservation-table th {
+  background: #1e293b;
+  color: #cbd5e1;
+  border-bottom-color: #334155;
+}
+
+html.dark-theme .customers-table td,
+html.dark-theme .table-container td,
+html.dark-theme .reservation-table td {
+  color: #cbd5e1;
+  border-bottom-color: #263244;
+}
+
+html.dark-theme .customers-table tbody tr:hover,
+html.dark-theme .table-container tbody tr:hover,
+html.dark-theme .reservation-table tbody tr:hover {
+  background: #172033;
+}
+
+
+/* =========================================================
+   DARK INPUTS
+   ========================================================= */
+
+html.dark-theme input,
+html.dark-theme select,
+html.dark-theme textarea {
+  background: #0f172a;
+  color: #e2e8f0;
+
+  border-color: #334155;
+}
+
+html.dark-theme input::placeholder,
+html.dark-theme textarea::placeholder {
+  color: #64748b;
+}
+
+html.dark-theme input:focus,
+html.dark-theme select:focus,
+html.dark-theme textarea:focus {
+  border-color: #3b82f6;
+}
+
+
+/* =========================================================
+   DARK VIP CARD
+   ========================================================= */
+
+html.dark-theme .vip-card {
+  background: #111827;
+  border-color: #263244;
+
+  box-shadow:
+    0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+html.dark-theme .vip-header h1,
+html.dark-theme .vip-card-header h2 {
+  color: #f8fafc;
+}
+
+html.dark-theme .vip-header p,
+html.dark-theme .vip-card-header p {
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   DARK PARKING / STAFF CARDS
+   ========================================================= */
+
+html.dark-theme .parking-summary-card,
+html.dark-theme .staff-summary-card {
+  background: #111827;
+  border-color: #263244;
+
+  color: #e2e8f0;
+}
+
+html.dark-theme .parking-summary-card h3,
+html.dark-theme .staff-summary-card h3 {
+  color: #f8fafc;
+}
+
+html.dark-theme .parking-summary-card p,
+html.dark-theme .staff-summary-card p {
+  color: #94a3b8;
+}
+
+
+/* =========================================================
+   DARK STATUS
+   ========================================================= */
+
+html.dark-theme .status-confirmed,
+html.dark-theme .reservation-status.confirmed {
+  background: #064e3b;
+  color: #86efac;
+}
+
+html.dark-theme .status-pending,
+html.dark-theme .reservation-status.pending {
+  background: #713f12;
+  color: #fde68a;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .sidebar-toggle {
+    display: none;
+  }
+
+  .theme-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+}

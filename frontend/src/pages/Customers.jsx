@@ -7,25 +7,119 @@ import {
   CarFront,
   Search,
   UserRound,
+  Edit2,
+  Trash2,
 } from "lucide-react";
+import Modal from "../components/Modal";
+import {
+  createCustomer,
+  deleteCustomer,
+  getCustomers,
+  updateCustomer,
+} from "../Services/api";
+
+const emptyForm = {
+  fullName: "",
+  phone: "",
+  email: "",
+  carPlate: "",
+  carModel: "",
+};
 
 function Customers() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [form, setForm] = useState(emptyForm);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/customers")
-      .then((response) => response.json())
-      .then((data) => {
-        setCustomers(data.customers || []);
+    const loadCustomers = async () => {
+      try {
+        setError("");
+        setCustomers(await getCustomers());
+      } catch (loadError) {
+        setError(loadError.message);
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error loading customers:", error);
-        setLoading(false);
-      });
+      }
+    };
+
+    loadCustomers();
   }, []);
+
+  const openCreateModal = () => {
+    setEditingCustomer(null);
+    setForm(emptyForm);
+    setError("");
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (customer) => {
+    setEditingCustomer(customer);
+    setForm({
+      fullName: customer.fullName || "",
+      phone: customer.phone || "",
+      email: customer.email || "",
+      carPlate: customer.carPlate || "",
+      carModel: customer.carModel || "",
+    });
+    setError("");
+    setIsModalOpen(true);
+  };
+
+  const handleFormChange = (event) => {
+    setForm((current) => ({
+      ...current,
+      [event.target.name]: event.target.value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      const savedCustomer = editingCustomer
+        ? await updateCustomer(editingCustomer.id, form)
+        : await createCustomer(form);
+
+      setCustomers((current) => {
+        if (!editingCustomer) {
+          return [savedCustomer, ...current];
+        }
+
+        return current.map((customer) =>
+          customer.id === savedCustomer.id ? savedCustomer : customer
+        );
+      });
+      setIsModalOpen(false);
+    } catch (saveError) {
+      setError(saveError.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (customer) => {
+    if (!window.confirm(`Delete ${customer.fullName}?`)) {
+      return;
+    }
+
+    try {
+      setError("");
+      await deleteCustomer(customer.id);
+      setCustomers((current) =>
+        current.filter((item) => item.id !== customer.id)
+      );
+    } catch (deleteError) {
+      setError(deleteError.message);
+    }
+  };
 
   const filteredCustomers = customers.filter((customer) => {
     const searchText = search.toLowerCase();
@@ -63,7 +157,7 @@ function Customers() {
           </div>
         </div>
 
-        <button className="customer-add-btn">
+        <button className="customer-add-btn" onClick={openCreateModal}>
           <UserPlus size={19} />
           <span>Add Customer</span>
         </button>
@@ -141,6 +235,17 @@ function Customers() {
           <p>Please wait while we load the customer information.</p>
         </div>
 
+      ) : error && customers.length === 0 ? (
+        <div className="customers-message">
+          <div className="message-icon">
+            <Users size={38} />
+          </div>
+          <h2>Unable to load customers</h2>
+          <p>{error}</p>
+          <button className="customer-add-btn" onClick={() => window.location.reload()}>
+            Try Again
+          </button>
+        </div>
       ) : customers.length === 0 ? (
 
         <div className="customers-message">
@@ -155,7 +260,7 @@ function Customers() {
             There are currently no customers in the system.
           </p>
 
-          <button className="customer-add-btn">
+          <button className="customer-add-btn" onClick={openCreateModal}>
             <UserPlus size={18} />
             <span>Add Your First Customer</span>
           </button>
@@ -191,6 +296,7 @@ function Customers() {
                 <th>Contact</th>
                 <th>Vehicle</th>
                 <th>Car Plate</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
@@ -267,6 +373,29 @@ function Customers() {
                     )}
                   </td>
 
+                  <td>
+                    <div className="customer-actions">
+                      <button
+                        type="button"
+                        className="customer-action-btn"
+                        title="Edit customer"
+                        aria-label={`Edit ${customer.fullName}`}
+                        onClick={() => openEditModal(customer)}
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        className="customer-action-btn delete"
+                        title="Delete customer"
+                        aria-label={`Delete ${customer.fullName}`}
+                        onClick={() => handleDelete(customer)}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+
                 </tr>
 
               ))}
@@ -278,6 +407,43 @@ function Customers() {
         </div>
 
       )}
+
+      {error && customers.length > 0 && (
+        <p className="customer-error" role="alert">{error}</p>
+      )}
+
+      <Modal
+        isOpen={isModalOpen}
+        title={editingCustomer ? "Edit Customer" : "Add Customer"}
+        onClose={() => !saving && setIsModalOpen(false)}
+      >
+        <form className="customer-form" onSubmit={handleSubmit}>
+          <label>
+            Full name
+            <input name="fullName" value={form.fullName} onChange={handleFormChange} required />
+          </label>
+          <label>
+            Phone
+            <input name="phone" value={form.phone} onChange={handleFormChange} required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" value={form.email} onChange={handleFormChange} />
+          </label>
+          <label>
+            Car plate
+            <input name="carPlate" value={form.carPlate} onChange={handleFormChange} required />
+          </label>
+          <label>
+            Car model
+            <input name="carModel" value={form.carModel} onChange={handleFormChange} />
+          </label>
+          {error && <p className="customer-error" role="alert">{error}</p>}
+          <button className="customer-add-btn" type="submit" disabled={saving}>
+            {saving ? "Saving..." : editingCustomer ? "Save Changes" : "Create Customer"}
+          </button>
+        </form>
+      </Modal>
 
     </div>
   );

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import {
@@ -9,30 +10,51 @@ import {
   Clock,
   ArrowRight,
 } from "lucide-react";
+import { getDashboardStats } from "../Services/api";
 
 function Dashboard() {
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        setError("");
+        setDashboard(await getDashboardStats());
+      } catch (loadError) {
+        setError(loadError.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  const statsData = dashboard?.stats || {};
   const stats = [
     {
       title: "Total Parking Spaces",
-      value: "150",
+      value: statsData.totalParkingSpaces ?? 0,
       icon: ParkingSquare,
       className: "blue",
     },
     {
       title: "Available Spaces",
-      value: "75",
+      value: statsData.availableSpaces ?? 0,
       icon: CircleCheck,
       className: "green",
     },
     {
       title: "Occupied Spaces",
-      value: "25",
+      value: statsData.occupiedSpaces ?? 0,
       icon: CarFront,
       className: "orange",
     },
     {
       title: "Today's Reservations",
-      value: "12",
+      value: statsData.todaysReservations ?? 0,
       icon: CalendarDays,
       className: "purple",
     },
@@ -63,6 +85,9 @@ function Dashboard() {
           </div>
 
           {/* Statistics */}
+          {loading && <div className="customers-message"><h2>Loading dashboard...</h2></div>}
+          {error && <div className="customers-message"><h2>Unable to load dashboard</h2><p>{error}</p></div>}
+
           <div className="dashboard-cards">
             {stats.map((stat) => {
               const Icon = stat.icon;
@@ -110,13 +135,13 @@ function Dashboard() {
 
                   <div className="overview-info">
                     <span>Available</span>
-                    <strong>75 Spaces</strong>
+                    <strong>{statsData.availableSpaces ?? 0} Spaces</strong>
                   </div>
 
                   <div className="overview-bar">
                     <div
                       className="overview-progress available-progress"
-                      style={{ width: "83.3%" }}
+                      style={{ width: `${statsData.totalParkingSpaces ? Math.round((statsData.availableSpaces / statsData.totalParkingSpaces) * 100) : 0}%` }}
                     ></div>
                   </div>
                 </div>
@@ -128,13 +153,13 @@ function Dashboard() {
 
                   <div className="overview-info">
                     <span>Occupied</span>
-                    <strong>25 Spaces</strong>
+                    <strong>{statsData.occupiedSpaces ?? 0} Spaces</strong>
                   </div>
 
                   <div className="overview-bar">
                     <div
                       className="overview-progress occupied-progress"
-                      style={{ width: "25%" }}
+                      style={{ width: `${statsData.occupancyPercentage ?? 0}%` }}
                     ></div>
                   </div>
                 </div>
@@ -142,10 +167,10 @@ function Dashboard() {
                 <div className="overview-total">
                   <div>
                     <span>Parking Capacity</span>
-                    <strong>25%</strong>
+                    <strong>{statsData.occupancyPercentage ?? 0}%</strong>
                   </div>
 
-                  <p>25 out of 100 spaces are currently occupied.</p>
+                  <p>{statsData.occupiedSpaces ?? 0} out of {statsData.totalParkingSpaces ?? 0} spaces are currently occupied.</p>
                 </div>
 
               </div>
@@ -216,45 +241,18 @@ function Dashboard() {
             </div>
 
             <div className="activity-list">
-
-              <div className="activity-item">
-                <div className="activity-icon">
-                  <CarFront size={19} />
+              {(dashboard?.recentActivity || []).length === 0 ? (
+                <div className="activity-item">
+                  <div className="activity-icon"><CalendarDays size={19} /></div>
+                  <div className="activity-content"><strong>No recent activity</strong><span>New activity will appear here.</span></div>
                 </div>
-
-                <div className="activity-content">
-                  <strong>Vehicle parked</strong>
-                  <span>Parking space A-02</span>
+              ) : dashboard.recentActivity.map((activity) => (
+                <div className="activity-item" key={`${activity.type}-${activity.createdAt}`}>
+                  <div className="activity-icon"><CalendarDays size={19} /></div>
+                  <div className="activity-content"><strong>{activity.title}</strong><span>{activity.detail}</span></div>
+                  <small>{new Date(activity.createdAt).toLocaleString()}</small>
                 </div>
-
-                <small>10 min ago</small>
-              </div>
-
-              <div className="activity-item">
-                <div className="activity-icon">
-                  <CalendarDays size={19} />
-                </div>
-
-                <div className="activity-content">
-                  <strong>New reservation</strong>
-                  <span>Parking space A-05</span>
-                </div>
-
-                <small>25 min ago</small>
-              </div>
-
-              <div className="activity-item">
-                <div className="activity-icon">
-                  <CircleCheck size={19} />
-                </div>
-
-                <div className="activity-content">
-                  <strong>Parking space available</strong>
-                  <span>Parking space B-03</span>
-                </div>
-
-                <small>1 hour ago</small>
-              </div>
+              ))}
 
             </div>
           </div>

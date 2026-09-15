@@ -1,24 +1,67 @@
-// server.js
+// Load environment variables before importing modules that create the Prisma client.
+require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
+const prisma = require("./config/database");
 
 // Import routes
 const parkingRoutes = require("./routes/parkingRoutes");
 const customerRoutes = require("./routes/customerRoutes");
+const authRoutes = require("./routes/authRoutes");
+const reservationRoutes = require("./routes/reservationRoutes");
+const vipReservationRoutes = require("./routes/vipReservationRoutes");
+const staffRoutes = require("./routes/staffRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
+const notFoundMiddleware = require("./middleware/notFoundMiddleware");
+const errorMiddleware = require("./middleware/errorMiddleware");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const allowedOrigins = new Set([
+  FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+]);
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: (origin, callback) => {
+    callback(null, !origin || allowedOrigins.has(origin));
+  },
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get("/api/test", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+
+    res.json({
+      success: true,
+      message: "Backend and Neon PostgreSQL connection are working",
+    });
+  } catch (error) {
+    console.error("Database health check failed");
+
+    res.status(503).json({
+      success: false,
+      message: "Database connection failed",
+    });
+  }
+});
+
 // API Routes
 app.use("/api", parkingRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/customers", customerRoutes);
+app.use("/api/reservations/vip", vipReservationRoutes);
+app.use("/api/reservations", reservationRoutes);
+app.use("/api/staff", staffRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Root route
 app.get("/", (req, res) => {
@@ -32,30 +75,20 @@ app.get("/", (req, res) => {
       "POST /api/customers": "Create a new customer",
       "PUT /api/customers/:id": "Update a customer",
       "DELETE /api/customers/:id": "Delete a customer",
-      "GET /api/parking-spots": "Get all parking spots",
-      "GET /api/parking-spots/:id": "Get a specific parking spot",
-      "POST /api/parking-spots": "Create a new parking spot",
-      "PUT /api/parking-spots/:id": "Update a parking spot",
-      "DELETE /api/parking-spots/:id": "Delete a parking spot",
-      "POST /api/park/:spotId": "Park a car",
-      "DELETE /api/unpark/:spotId": "Unpark a car",
-      "GET /api/availability": "Check parking availability",
-      "GET /api/status": "Get parking status",
-      "GET /api/stats": "Get parking statistics"
+      "GET /api/parking-spaces": "Get parking spaces",
+      "POST /api/parking-spaces": "Create a parking space",
+      "PUT /api/parking-spaces/:id": "Update a parking space",
+      "DELETE /api/parking-spaces/:id": "Delete a parking space",
+      "GET /api/reservations": "Get reservations",
+      "GET /api/reservations/vip": "Get VIP reservations",
+      "GET /api/staff": "Get staff",
+      "GET /api/dashboard": "Get dashboard statistics"
     }
   });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-
-  res.status(500).json({
-    success: false,
-    message: "Something went wrong!",
-    error: err.message
-  });
-});
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
 
 // Start server
 app.listen(PORT, () => {

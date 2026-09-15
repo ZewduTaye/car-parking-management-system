@@ -1,5 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Customers from "./pages/Customers";
@@ -8,33 +7,27 @@ import VIPReservation from "./pages/VIPReservation";
 import ParkingSpaces from "./pages/ParkingSpaces";
 import Staff from "./pages/Staff";
 
+function RequireAuth({ children }) {
+  return localStorage.getItem("token") ? children : <Navigate to="/login" replace />;
+}
+
+function RequireAdmin({ children }) {
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  return user?.role === "ADMIN" ? children : <Navigate to="/dashboard" replace />;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-
-        <Route path="/" element={<Navigate to="/login" replace />} />
-
         <Route path="/login" element={<Login />} />
-
-        <Route path="/dashboard" element={<Dashboard />} />
-
-        <Route path="/customers" element={<Customers />} />
-
-        <Route path="/reservations" element={<Reservations />} />
-
-        <Route
-          path="/vip-reservation"
-          element={<VIPReservation />}
-        />
-
-        <Route
-          path="/parking-spaces"
-          element={<ParkingSpaces />}
-        />
-
-        <Route path="/staff" element={<Staff />} />
-
+        <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+        <Route path="/customers" element={<RequireAuth><Customers /></RequireAuth>} />
+        <Route path="/reservations" element={<RequireAuth><Reservations /></RequireAuth>} />
+        <Route path="/vip-reservation" element={<RequireAuth><VIPReservation /></RequireAuth>} />
+        <Route path="/parking-spaces" element={<RequireAuth><ParkingSpaces /></RequireAuth>} />
+        <Route path="/staff" element={<RequireAuth><RequireAdmin><Staff /></RequireAdmin></RequireAuth>} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

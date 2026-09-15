@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import {
@@ -11,42 +11,55 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import {
+  createReservation,
+  deleteReservation,
+  getCustomers,
+  getParkingSpaces,
+  getReservations,
+  updateReservation,
+} from "../Services/api";
 
 function Reservations() {
   const [showForm, setShowForm] = useState(false);
+  const [editingReservation, setEditingReservation] = useState(null);
   const [search, setSearch] = useState("");
-
-  const [reservations, setReservations] = useState([
-    {
-      id: 1,
-      customer: "Abebe Kebede",
-      plate: "ET-12345",
-      space: "A-01",
-      date: "2026-09-03",
-      start: "09:00",
-      end: "12:00",
-      status: "Confirmed",
-    },
-    {
-      id: 2,
-      customer: "Sara Ahmed",
-      plate: "ET-67890",
-      space: "A-05",
-      date: "2026-09-03",
-      start: "13:00",
-      end: "16:00",
-      status: "Pending",
-    },
-  ]);
+  const [reservations, setReservations] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [parkingSpaces, setParkingSpaces] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    customer: "",
-    plate: "",
-    space: "",
+    customerId: "",
+    parkingSpaceId: "",
     date: "",
     start: "",
     end: "",
   });
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setError("");
+        const [reservationData, customerData, parkingSpaceData] = await Promise.all([
+          getReservations(),
+          getCustomers(),
+          getParkingSpaces(),
+        ]);
+        setReservations(reservationData);
+        setCustomers(customerData);
+        setParkingSpaces(parkingSpaceData);
+      } catch (loadError) {
+        setError(loadError.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -55,51 +68,92 @@ function Reservations() {
     });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const openCreateForm = () => {
+    setEditingReservation(null);
+    setFormData({ customerId: "", parkingSpaceId: "", date: "", start: "", end: "" });
+    setError("");
+    setShowForm(true);
+  };
 
-    const newReservation = {
-      id: reservations.length + 1,
-      customer: formData.customer,
-      plate: formData.plate,
-      space: formData.space,
-      date: formData.date,
-      start: formData.start,
-      end: formData.end,
-      status: "Pending",
-    };
-
-    setReservations([...reservations, newReservation]);
-
+  const openEditForm = (reservation) => {
+    const start = new Date(reservation.startTime);
+    const end = new Date(reservation.endTime);
+    setEditingReservation(reservation);
     setFormData({
-      customer: "",
-      plate: "",
-      space: "",
-      date: "",
-      start: "",
-      end: "",
+      customerId: String(reservation.customer.id),
+      parkingSpaceId: String(reservation.parkingSpace.id),
+      date: reservation.startTime.slice(0, 10),
+      start: start.toISOString().slice(11, 16),
+      end: end.toISOString().slice(11, 16),
     });
+    setError("");
+    setShowForm(true);
+  };
 
-    setShowForm(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+
+    try {
+      const reservationPayload = {
+        customerId: Number(formData.customerId),
+        parkingSpaceId: Number(formData.parkingSpaceId),
+        startTime: `${formData.date}T${formData.start}`,
+        endTime: `${formData.date}T${formData.end}`,
+      };
+      const reservation = editingReservation
+        ? await updateReservation(editingReservation.id, reservationPayload)
+        : await createReservation(reservationPayload);
+
+      setReservations((current) => editingReservation
+        ? current.map((item) => item.id === reservation.id ? reservation : item)
+        : [...current, reservation]
+      );
+      setEditingReservation(null);
+      setFormData({ customerId: "", parkingSpaceId: "", date: "", start: "", end: "" });
+      setShowForm(false);
+    } catch (submitError) {
+      setError(submitError.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const filteredReservations = reservations.filter((reservation) => {
     const text = search.toLowerCase();
 
     return (
-      reservation.customer.toLowerCase().includes(text) ||
-      reservation.plate.toLowerCase().includes(text) ||
-      reservation.space.toLowerCase().includes(text)
+      reservation.customer?.fullName?.toLowerCase().includes(text) ||
+      reservation.customer?.carPlate?.toLowerCase().includes(text) ||
+      reservation.parkingSpace?.spaceNumber?.toLowerCase().includes(text)
     );
   });
 
   const confirmedCount = reservations.filter(
-    (reservation) => reservation.status === "Confirmed"
+    (reservation) => reservation.status === "CONFIRMED"
   ).length;
 
   const pendingCount = reservations.filter(
-    (reservation) => reservation.status === "Pending"
+    (reservation) => reservation.status === "PENDING"
   ).length;
+
+  const formatDate = (value) => new Date(value).toLocaleDateString();
+  const formatTime = (value) => new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const handleCancel = async (reservation) => {
+    if (!window.confirm("Cancel this reservation?")) return;
+
+    try {
+      setError("");
+      await deleteReservation(reservation.id);
+      setReservations((current) => current.map((item) =>
+        item.id === reservation.id ? { ...item, status: "CANCELLED" } : item
+      ));
+    } catch (cancelError) {
+      setError(cancelError.message);
+    }
+  };
 
   return (
     <div className="app-layout">
@@ -125,7 +179,7 @@ function Reservations() {
 
             <button
               className="reservation-add-btn"
-              onClick={() => setShowForm(true)}
+              onClick={openCreateForm}
             >
               <Plus size={19} />
               New Reservation
@@ -207,6 +261,7 @@ function Reservations() {
                   <th>Date</th>
                   <th>Time</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
 
@@ -230,7 +285,7 @@ function Reservations() {
                         </div>
 
                         <div>
-                          <strong>{reservation.customer}</strong>
+                          <strong>{reservation.customer?.fullName}</strong>
                           <small>Customer</small>
                         </div>
 
@@ -240,38 +295,53 @@ function Reservations() {
                     <td>
                       <div className="reservation-vehicle">
                         <CarFront size={17} />
-                        {reservation.plate}
+                        {reservation.customer?.carPlate}
                       </div>
                     </td>
 
                     <td>
                       <div className="reservation-space">
                         <MapPin size={16} />
-                        {reservation.space}
+                        {reservation.parkingSpace?.spaceNumber}
                       </div>
                     </td>
 
                     <td>
-                      {reservation.date}
+                      {formatDate(reservation.startTime)}
                     </td>
 
                     <td>
                       <div className="reservation-time">
                         <Clock size={15} />
-                        {reservation.start} - {reservation.end}
+                        {formatTime(reservation.startTime)} - {formatTime(reservation.endTime)}
                       </div>
                     </td>
 
                     <td>
                       <span
-                        className={`reservation-status ${
-                          reservation.status === "Confirmed"
-                            ? "confirmed"
-                            : "pending"
-                        }`}
+                        className={`reservation-status ${reservation.status.toLowerCase()}`}
                       >
                         {reservation.status}
                       </span>
+                    </td>
+
+                    <td>
+                      <button
+                        type="button"
+                        className="reservation-cancel-btn"
+                        onClick={() => openEditForm(reservation)}
+                      >
+                        Edit
+                      </button>
+                      {reservation.status !== "CANCELLED" && (
+                        <button
+                          type="button"
+                          className="reservation-cancel-btn"
+                          onClick={() => handleCancel(reservation)}
+                        >
+                          Cancel
+                        </button>
+                      )}
                     </td>
 
                   </tr>
@@ -282,7 +352,18 @@ function Reservations() {
 
             </table>
 
-            {filteredReservations.length === 0 && (
+            {loading ? (
+              <div className="reservation-empty">
+                <CalendarDays size={40} />
+                <h3>Loading reservations...</h3>
+              </div>
+            ) : error && reservations.length === 0 ? (
+              <div className="reservation-empty">
+                <CalendarDays size={40} />
+                <h3>Unable to load reservations</h3>
+                <p>{error}</p>
+              </div>
+            ) : filteredReservations.length === 0 && (
               <div className="reservation-empty">
                 <CalendarDays size={40} />
                 <h3>No reservations found</h3>
@@ -309,8 +390,8 @@ function Reservations() {
               <div className="reservation-modal-header">
 
                 <div>
-                  <h2>New Reservation</h2>
-                  <p>Create a new parking reservation</p>
+                  <h2>{editingReservation ? "Edit Reservation" : "New Reservation"}</h2>
+                  <p>{editingReservation ? "Update the parking reservation" : "Create a new parking reservation"}</p>
                 </div>
 
                 <button
@@ -332,14 +413,19 @@ function Reservations() {
                   <div className="reservation-form-group">
                     <label>Customer Name</label>
 
-                    <input
-                      type="text"
-                      name="customer"
-                      placeholder="Enter customer name"
-                      value={formData.customer}
+                    <select
+                      name="customerId"
+                      value={formData.customerId}
                       onChange={handleChange}
                       required
-                    />
+                    >
+                      <option value="">Select customer</option>
+                      {customers.map((customer) => (
+                        <option key={customer.id} value={customer.id}>
+                          {customer.fullName} ({customer.carPlate})
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="reservation-form-group">
@@ -347,11 +433,9 @@ function Reservations() {
 
                     <input
                       type="text"
-                      name="plate"
-                      placeholder="e.g. ET-12345"
-                      value={formData.plate}
-                      onChange={handleChange}
-                      required
+                      value={customers.find((customer) => String(customer.id) === String(formData.customerId))?.carPlate || ""}
+                      placeholder="Selected customer plate"
+                      readOnly
                     />
                   </div>
 
@@ -363,8 +447,8 @@ function Reservations() {
                     <label>Parking Space</label>
 
                     <select
-                      name="space"
-                      value={formData.space}
+                      name="parkingSpaceId"
+                      value={formData.parkingSpaceId}
                       onChange={handleChange}
                       required
                     >
@@ -372,14 +456,13 @@ function Reservations() {
                         Select parking space
                       </option>
 
-                      <option value="A-01">A-01</option>
-                      <option value="A-02">A-02</option>
-                      <option value="A-03">A-03</option>
-                      <option value="A-04">A-04</option>
-                      <option value="A-05">A-05</option>
-                      <option value="B-01">B-01</option>
-                      <option value="B-02">B-02</option>
-                      <option value="B-03">B-03</option>
+                      {parkingSpaces
+                        .filter((space) => ["AVAILABLE", "RESERVED"].includes(space.status))
+                        .map((space) => (
+                          <option key={space.id} value={space.id}>
+                            {space.spaceNumber}
+                          </option>
+                        ))}
                     </select>
                   </div>
 
@@ -438,9 +521,10 @@ function Reservations() {
                   <button
                     type="submit"
                     className="reservation-submit-btn"
+                    disabled={saving}
                   >
                     <CalendarDays size={18} />
-                    Create Reservation
+                    {saving ? "Saving..." : editingReservation ? "Save Changes" : "Create Reservation"}
                   </button>
 
                 </div>
