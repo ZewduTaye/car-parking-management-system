@@ -970,6 +970,7 @@
 
 /* =========================
    PASSWORD SHOW / HIDE
+   Correctly centered inside password field
 ========================= */
 
 .password-wrapper {
@@ -977,25 +978,51 @@
   width: 100%;
 }
 
-.password-input {
-  padding-right: 50px !important;
+.password-wrapper .password-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 55px !important;
 }
 
 .password-toggle {
   position: absolute;
-  right: 10px;
   top: 50%;
+  right: 14px;
   transform: translateY(-50%);
+
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  margin: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   border: none;
+  outline: none;
   background: transparent;
+
   cursor: pointer;
-  font-size: 18px;
-  padding: 5px;
-  z-index: 2;
+  font-size: 20px;
+  line-height: 1;
+  z-index: 10;
+}
+
+.password-toggle:hover,
+.password-toggle:focus,
+.password-toggle:active {
+  background: transparent;
+  border: none;
+  outline: none;
 }
 
 .password-toggle:hover {
-  opacity: 0.7;
+  opacity: 0.75;
+}
+
+html.dark-theme .password-toggle {
+  color: #e2e8f0;
 }
 
 /* =========================
