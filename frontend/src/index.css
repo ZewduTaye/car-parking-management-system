@@ -3561,3 +3561,144 @@ html.dark-theme .reservation-status.pending {
   }
 
 }
+
+.logout-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 16px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #64748b;
+
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+
+  cursor: pointer;
+  text-align: left;
+
+  transition: all 0.2s ease;
+}
+
+.logout-link:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.logout-icon {
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+html.dark-theme .logout-link {
+  color: #94a3b8;
+}
+
+html.dark-theme .logout-link:hover {
+  background: #3f1d1d;
+  color: #fca5a5;
+}
+
+/* =========================================
+   LOGOUT BUTTON - FIXED SIDEBAR POSITION
+========================================= */
+
+.sidebar {
+  height: 100vh;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Allow the menu to use the available space */
+.sidebar-menu {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Keep logout visible at the bottom */
+.sidebar-bottom {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 14px 20px 20px;
+  border-top: 1px solid rgba(148, 163, 184, 0.15);
+  background: inherit;
+  box-sizing: border-box;
+}
+
+/* Logout button */
+.sidebar-bottom .logout-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px 14px;
+
+  border: none;
+  border-radius: 10px;
+
+  background: transparent;
+  color: #94a3b8;
+
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+
+  cursor: pointer;
+  text-decoration: none;
+  text-align: left;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.sidebar-bottom .logout-link:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+}
+
+/* =========================================
+   COLLAPSED SIDEBAR
+========================================= */
+
+html.sidebar-collapsed .sidebar-bottom {
+  padding: 12px 10px 18px;
+}
+
+html.sidebar-collapsed .sidebar-bottom .logout-link {
+  justify-content: center;
+  padding: 12px 8px;
+}
+
+html.sidebar-collapsed .sidebar-bottom .logout-link span {
+  display: none;
+}
+
+/* Dark theme */
+html.dark-theme .sidebar-bottom {
+  border-top-color: rgba(148, 163, 184, 0.15);
+}
+
+html.dark-theme .sidebar-bottom .logout-link {
+  color: #94a3b8;
+}
+
+html.dark-theme .sidebar-bottom .logout-link:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
