@@ -6,7 +6,10 @@ const express = require("express");
 const cors = require("cors");
 const prisma = require("./config/database");
 
+// ----------------------------------------------------
 // Import routes
+// ----------------------------------------------------
+
 const parkingRoutes = require("./routes/parkingRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const authRoutes = require("./routes/authRoutes");
@@ -16,7 +19,10 @@ const staffRoutes = require("./routes/staffRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 
+// ----------------------------------------------------
 // Middleware
+// ----------------------------------------------------
+
 const notFoundMiddleware = require("./middleware/notFoundMiddleware");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
@@ -36,7 +42,7 @@ const allowedOrigins = new Set([
 ]);
 
 // ----------------------------------------------------
-// Middleware
+// CORS
 // ----------------------------------------------------
 
 app.use(
@@ -49,6 +55,10 @@ app.use(
     },
   })
 );
+
+// ----------------------------------------------------
+// Body parsing
+// ----------------------------------------------------
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -67,7 +77,10 @@ app.get("/api/test", async (req, res) => {
         "Backend and Neon PostgreSQL connection are working",
     });
   } catch (error) {
-    console.error("Database health check failed");
+    console.error(
+      "Database health check failed:",
+      error.message
+    );
 
     res.status(503).json({
       success: false,
@@ -100,6 +113,7 @@ app.use("/api/staff", staffRoutes);
 
 app.use("/api/dashboard", dashboardRoutes);
 
+// Payment routes
 app.use("/api/payments", paymentRoutes);
 
 // ----------------------------------------------------
@@ -170,10 +184,14 @@ app.get("/", (req, res) => {
 });
 
 // ----------------------------------------------------
-// Error handling
+// 404 handler
 // ----------------------------------------------------
 
 app.use(notFoundMiddleware);
+
+// ----------------------------------------------------
+// Error handler
+// ----------------------------------------------------
 
 app.use(errorMiddleware);
 
@@ -190,5 +208,3 @@ app.listen(PORT, () => {
     `📋 API endpoints available at http://localhost:${PORT}/api`
   );
 });
-const paymentRoutes = require("./routes/paymentRoutes");
-app.use("/api/payments", paymentRoutes);

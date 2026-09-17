@@ -4,9 +4,14 @@ const API_URL =
 
 const request = async (path, options = {}) => {
   const token = localStorage.getItem("token");
+
   const headers = {
-    ...(options.body ? { "Content-Type": "application/json" } : {}),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(options.body
+      ? { "Content-Type": "application/json" }
+      : {}),
+    ...(token
+      ? { Authorization: `Bearer ${token}` }
+      : {}),
     ...options.headers,
   };
 
@@ -20,21 +25,32 @@ const request = async (path, options = {}) => {
   if (response.status === 401) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+
     if (window.location.pathname !== "/login") {
       window.location.href = "/login";
     }
   }
 
   if (!response.ok) {
-    throw new Error(data.message || "Backend request failed");
+    throw new Error(
+      data.message || "Backend request failed"
+    );
   }
 
   return data;
 };
 
+// =====================================================
+// BACKEND TEST
+// =====================================================
+
 export const testBackend = async () => {
   return request("/test");
 };
+
+// =====================================================
+// AUTHENTICATION
+// =====================================================
 
 export const loginUser = async ({ email, password }) => {
   return request("/auth/login", {
@@ -43,8 +59,13 @@ export const loginUser = async ({ email, password }) => {
   });
 };
 
+// =====================================================
+// CUSTOMERS
+// =====================================================
+
 export const getCustomers = async () => {
   const data = await request("/customers");
+
   return data.customers || [];
 };
 
@@ -53,6 +74,7 @@ export const createCustomer = async (customer) => {
     method: "POST",
     body: JSON.stringify(customer),
   });
+
   return data.customer;
 };
 
@@ -61,6 +83,7 @@ export const updateCustomer = async (id, customer) => {
     method: "PUT",
     body: JSON.stringify(customer),
   });
+
   return data.customer;
 };
 
@@ -70,8 +93,13 @@ export const deleteCustomer = async (id) => {
   });
 };
 
+// =====================================================
+// PARKING SPACES
+// =====================================================
+
 export const getParkingSpaces = async () => {
   const data = await request("/parking-spaces");
+
   return data.spaces || [];
 };
 
@@ -80,6 +108,7 @@ export const createParkingSpace = async (space) => {
     method: "POST",
     body: JSON.stringify(space),
   });
+
   return data.space;
 };
 
@@ -88,6 +117,7 @@ export const updateParkingSpace = async (id, space) => {
     method: "PUT",
     body: JSON.stringify(space),
   });
+
   return data.space;
 };
 
@@ -97,8 +127,13 @@ export const deleteParkingSpace = async (id) => {
   });
 };
 
+// =====================================================
+// RESERVATIONS
+// =====================================================
+
 export const getReservations = async () => {
   const data = await request("/reservations");
+
   return data.reservations || [];
 };
 
@@ -107,22 +142,34 @@ export const createReservation = async (reservation) => {
     method: "POST",
     body: JSON.stringify(reservation),
   });
+
   return data.reservation;
 };
 
-export const updateReservation = async (id, reservation) => {
+export const updateReservation = async (
+  id,
+  reservation
+) => {
   const data = await request(`/reservations/${id}`, {
     method: "PUT",
     body: JSON.stringify(reservation),
   });
+
   return data.reservation;
 };
 
-export const updateReservationStatus = async (id, status) => {
-  const data = await request(`/reservations/${id}/status`, {
-    method: "PUT",
-    body: JSON.stringify({ status }),
-  });
+export const updateReservationStatus = async (
+  id,
+  status
+) => {
+  const data = await request(
+    `/reservations/${id}/status`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ status }),
+    }
+  );
+
   return data.reservation;
 };
 
@@ -132,24 +179,39 @@ export const deleteReservation = async (id) => {
   });
 };
 
+// =====================================================
+// VIP RESERVATIONS
+// =====================================================
+
 export const getVIPReservations = async () => {
   const data = await request("/reservations/vip");
+
   return data.reservations || [];
 };
 
-export const createVIPReservation = async (reservation) => {
+export const createVIPReservation = async (
+  reservation
+) => {
   const data = await request("/reservations/vip", {
     method: "POST",
     body: JSON.stringify(reservation),
   });
+
   return data.reservation;
 };
 
-export const updateVIPReservation = async (id, reservation) => {
-  const data = await request(`/reservations/vip/${id}`, {
-    method: "PUT",
-    body: JSON.stringify(reservation),
-  });
+export const updateVIPReservation = async (
+  id,
+  reservation
+) => {
+  const data = await request(
+    `/reservations/vip/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(reservation),
+    }
+  );
+
   return data.reservation;
 };
 
@@ -159,8 +221,13 @@ export const cancelVIPReservation = async (id) => {
   });
 };
 
+// =====================================================
+// STAFF
+// =====================================================
+
 export const getStaff = async () => {
   const data = await request("/staff");
+
   return data.staff || [];
 };
 
@@ -169,6 +236,7 @@ export const createStaff = async (staff) => {
     method: "POST",
     body: JSON.stringify(staff),
   });
+
   return data.staff;
 };
 
@@ -177,6 +245,7 @@ export const updateStaff = async (id, staff) => {
     method: "PUT",
     body: JSON.stringify(staff),
   });
+
   return data.staff;
 };
 
@@ -186,10 +255,89 @@ export const deleteStaff = async (id) => {
   });
 };
 
+// =====================================================
+// DASHBOARD
+// =====================================================
+
 export const getDashboardStats = async () => {
   const data = await request("/dashboard");
+
   return data;
 };
 
-export default API_URL;
+// =====================================================
+// PAYMENTS
+// =====================================================
 
+/*
+ * Get payment API information.
+ */
+export const getPaymentApi = async () => {
+  return request("/payments");
+};
+
+/*
+ * Submit payment information.
+ *
+ * payment:
+ * {
+ *   reservationCode,
+ *   paymentMethod,
+ *   paymentReference
+ * }
+ *
+ * Supported payment methods:
+ * TELEBIRR
+ * CBE
+ * AWASH
+ * DASHEN
+ */
+export const submitPayment = async (payment) => {
+  const data = await request("/payments/submit", {
+    method: "POST",
+    body: JSON.stringify(payment),
+  });
+
+  return data.reservation;
+};
+
+/*
+ * Get payment information for a reservation.
+ */
+export const getPaymentByReservation = async (
+  reservationCode
+) => {
+  const data = await request(
+    `/payments/reservation/${encodeURIComponent(
+      reservationCode
+    )}`
+  );
+
+  return data.payment;
+};
+
+/*
+ * Staff/Admin payment verification.
+ *
+ * approved:
+ * true  = payment accepted
+ * false = payment rejected
+ */
+export const verifyPayment = async (
+  reservationCode,
+  approved
+) => {
+  const data = await request(
+    `/payments/verify/${encodeURIComponent(
+      reservationCode
+    )}`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ approved }),
+    }
+  );
+
+  return data.reservation;
+};
+
+export default API_URL;
