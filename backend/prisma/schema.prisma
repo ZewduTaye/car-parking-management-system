@@ -44,19 +44,39 @@ model ParkingSpace {
 }
 
 model Reservation {
-  id             Int               @id @default(autoincrement())
+  id             Int  @id @default(autoincrement())
   customerId     Int
   parkingSpaceId Int
   userId         Int?
-  startTime      DateTime
-  endTime        DateTime
-  totalAmount    Float             @default(0)
-  status         ReservationStatus @default(PENDING)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  customer       Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  parkingSpace   ParkingSpace      @relation(fields: [parkingSpaceId], references: [id])
-  user           User?             @relation(fields: [userId], references: [id])
+
+  reservationCode String? @unique
+
+  startTime   DateTime
+  endTime     DateTime
+  totalAmount Float             @default(0)
+  status      ReservationStatus @default(PENDING)
+
+  paymentMethod    PaymentMethod?
+  paymentStatus    PaymentStatus  @default(PENDING)
+  paymentReference String?
+  paymentDeadline  DateTime?
+
+  vehicleCondition  VehicleCondition?
+  vehicleNotes      String?
+  vehicleFrontPhoto String?
+  vehicleRearPhoto  String?
+  vehicleLeftPhoto  String?
+  vehicleRightPhoto String?
+
+  arrivalTime   DateTime?
+  departureTime DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  parkingSpace ParkingSpace @relation(fields: [parkingSpaceId], references: [id])
+  user         User?        @relation(fields: [userId], references: [id])
 }
 
 model VIPReservation {
@@ -70,8 +90,9 @@ model VIPReservation {
   specialRequest String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
-  customer       Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  parkingSpace   ParkingSpace      @relation(fields: [parkingSpaceId], references: [id])
+
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  parkingSpace ParkingSpace @relation(fields: [parkingSpaceId], references: [id])
 }
 
 enum UserRole {
@@ -91,4 +112,25 @@ enum ReservationStatus {
   CONFIRMED
   COMPLETED
   CANCELLED
+}
+
+enum PaymentMethod {
+  TELEBIRR
+  CBE
+  AWASH
+  DASHEN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+  REFUNDED
+}
+
+enum VehicleCondition {
+  NO_DAMAGE
+  MINOR_SCRATCH
+  EXISTING_BODY_DAMAGE
 }
