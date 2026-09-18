@@ -1,187 +1,194 @@
-import { useNavigate, NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import {
   LayoutDashboard,
   Users,
   CalendarDays,
   Star,
-  CarFront,
   UserCog,
   LogOut,
   ParkingSquare,
-  PanelLeftClose,
-  PanelLeftOpen,
+  CarFront,
+  ChevronRight,
 } from "lucide-react";
 
 function Sidebar() {
   const navigate = useNavigate();
 
-  // Sidebar collapsed state
+  // ============================================================
+  // SIDEBAR COLLAPSED STATE
+  // ============================================================
   const [collapsed, setCollapsed] = useState(() => {
     return localStorage.getItem("sidebarCollapsed") === "true";
   });
 
-  // Apply collapsed state
+  // ============================================================
+  // APPLY SIDEBAR WIDTH
+  // ============================================================
   useEffect(() => {
-    document.documentElement.classList.toggle(
-      "sidebar-collapsed",
-      collapsed
+    const applySidebarState = (isCollapsed) => {
+      setCollapsed(isCollapsed);
+
+      document.documentElement.classList.toggle(
+        "sidebar-collapsed",
+        isCollapsed
+      );
+
+      document.documentElement.style.setProperty(
+        "--sidebar-width",
+        isCollapsed ? "82px" : "260px"
+      );
+    };
+
+    const initialState =
+      localStorage.getItem("sidebarCollapsed") === "true";
+
+    applySidebarState(initialState);
+
+    const handleSidebarChange = () => {
+      const isCollapsed =
+        localStorage.getItem("sidebarCollapsed") === "true";
+
+      applySidebarState(isCollapsed);
+    };
+
+    window.addEventListener(
+      "sidebar-state-change",
+      handleSidebarChange
     );
 
-    localStorage.setItem(
-      "sidebarCollapsed",
-      String(collapsed)
-    );
-  }, [collapsed]);
+    return () => {
+      window.removeEventListener(
+        "sidebar-state-change",
+        handleSidebarChange
+      );
+    };
+  }, []);
 
-  // Toggle sidebar
-  const toggleSidebar = () => {
-    setCollapsed((value) => !value);
-  };
+  // ============================================================
+  // LOGOUT
+  // ============================================================
+  const handleLogout = (event) => {
+    event.preventDefault();
 
-  // Logout
-  const handleLogout = (e) => {
-    e.preventDefault();
-
-    // Remove authentication data
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    // Return to login page
-    navigate("/login", { replace: true });
+    navigate("/login", {
+      replace: true,
+    });
   };
 
+  // ============================================================
+  // MENU ITEMS
+  // ============================================================
+  const menuItems = [
+    {
+      to: "/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      to: "/customers",
+      label: "Customers",
+      icon: Users,
+    },
+    {
+      to: "/reservations",
+      label: "Reservations",
+      icon: CalendarDays,
+    },
+    {
+      to: "/vip-reservation",
+      label: "VIP Reservation",
+      icon: Star,
+    },
+    {
+      to: "/parking-spaces",
+      label: "Parking Spaces",
+      icon: ParkingSquare,
+    },
+    {
+      to: "/staff",
+      label: "Staff",
+      icon: UserCog,
+    },
+  ];
+
+  // ============================================================
+  // SIDEBAR
+  // ============================================================
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${collapsed ? "collapsed" : ""}`}>
 
-      {/* =========================
+      {/* ======================================================
           LOGO
-      ========================== */}
+      ======================================================= */}
       <div className="sidebar-logo">
-
         <div className="sidebar-logo-icon">
-          <CarFront size={25} />
+          <CarFront size={27} strokeWidth={2.3} />
         </div>
 
-        <div className="sidebar-logo-text">
-          <strong>
-            Park<span>Ease</span>
-          </strong>
+        {!collapsed && (
+          <div className="sidebar-logo-text">
+            <strong>
+              Park<span>Ease</span>
+            </strong>
 
-          <small>
-            Management System
-          </small>
-        </div>
-
-        {/* COLLAPSE BUTTON */}
-        <button
-          type="button"
-          className="sidebar-toggle"
-          onClick={toggleSidebar}
-          title={
-            collapsed
-              ? "Expand menu"
-              : "Collapse menu"
-          }
-          aria-label={
-            collapsed
-              ? "Expand menu"
-              : "Collapse menu"
-          }
-        >
-          {collapsed ? (
-            <PanelLeftOpen size={19} />
-          ) : (
-            <PanelLeftClose size={19} />
-          )}
-        </button>
+            <small>Management System</small>
+          </div>
+        )}
       </div>
 
-      {/* =========================
+      {/* ======================================================
           MENU
-      ========================== */}
+      ======================================================= */}
       <nav className="sidebar-menu">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
 
-        {/* Dashboard */}
-        <NavLink
-          to="/dashboard"
-          className="sidebar-link"
-          title="Dashboard"
-        >
-          <LayoutDashboard size={20} />
-          <span>Dashboard</span>
-        </NavLink>
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              title={collapsed ? item.label : undefined}
+              className={({ isActive }) =>
+                `sidebar-link ${isActive ? "active" : ""}`
+              }
+            >
+              <Icon size={21} strokeWidth={2} />
 
-        {/* Customers */}
-        <NavLink
-          to="/customers"
-          className="sidebar-link"
-          title="Customers"
-        >
-          <Users size={20} />
-          <span>Customers</span>
-        </NavLink>
+              {!collapsed && (
+                <span>{item.label}</span>
+              )}
 
-        {/* Reservations */}
-        <NavLink
-          to="/reservations"
-          className="sidebar-link"
-          title="Reservations"
-        >
-          <CalendarDays size={20} />
-          <span>Reservations</span>
-        </NavLink>
-
-        {/* VIP Reservation */}
-        <NavLink
-          to="/vip-reservation"
-          className="sidebar-link"
-          title="VIP Reservation"
-        >
-          <Star size={20} />
-          <span>VIP Reservation</span>
-        </NavLink>
-
-        {/* Parking Spaces */}
-        <NavLink
-          to="/parking-spaces"
-          className="sidebar-link"
-          title="Parking Spaces"
-        >
-          <ParkingSquare size={20} />
-          <span>Parking Spaces</span>
-        </NavLink>
-
-        {/* Staff */}
-        <NavLink
-          to="/staff"
-          className="sidebar-link"
-          title="Staff"
-        >
-          <UserCog size={20} />
-          <span>Staff</span>
-        </NavLink>
-
+              {!collapsed && (
+                <ChevronRight
+                  className="sidebar-link-arrow"
+                  size={16}
+                />
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
 
-      {/* =========================
-          LOGOUT
-      ========================== */}
+      {/* ======================================================
+          BOTTOM AREA
+      ======================================================= */}
       <div className="sidebar-bottom">
-
         <button
           type="button"
           className="sidebar-link logout-link"
           onClick={handleLogout}
-          title="Logout"
+          title={collapsed ? "Logout" : undefined}
         >
-          <LogOut size={20} />
-          <span>Logout</span>
+          <LogOut size={21} strokeWidth={2} />
+
+          {!collapsed && <span>Logout</span>}
         </button>
-
       </div>
-
     </aside>
   );
 }

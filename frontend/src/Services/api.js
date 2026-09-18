@@ -1,6 +1,14 @@
+// =====================================================
+// API CONFIGURATION
+// =====================================================
+
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "http://localhost:5000/api";
+
+// =====================================================
+// COMMON REQUEST FUNCTION
+// =====================================================
 
 const request = async (path, options = {}) => {
   const token = localStorage.getItem("token");
@@ -15,29 +23,48 @@ const request = async (path, options = {}) => {
     ...options.headers,
   };
 
-  const response = await fetch(`${API_URL}${path}`, {
-    ...options,
-    headers,
-  });
+  try {
+    const response = await fetch(`${API_URL}${path}`, {
+      ...options,
+      headers,
+    });
 
-  const data = await response.json().catch(() => ({}));
+    const data = await response.json().catch(() => ({}));
 
-  if (response.status === 401) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // -------------------------------------------------
+    // Unauthorized
+    // -------------------------------------------------
 
-    if (window.location.pathname !== "/login") {
-      window.location.href = "/login";
+    if (response.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+
+      throw new Error(
+        data.message || "Unauthorized. Please login again."
+      );
     }
-  }
 
-  if (!response.ok) {
-    throw new Error(
-      data.message || "Backend request failed"
-    );
-  }
+    // -------------------------------------------------
+    // Other API errors
+    // -------------------------------------------------
 
-  return data;
+    if (!response.ok) {
+      throw new Error(
+        data.message ||
+        data.error ||
+        `Request failed with status ${response.status}`
+      );
+    }
+
+    return data;
+  } catch (error) {
+    console.error("API Error:", error);
+    throw error;
+  }
 };
 
 // =====================================================
@@ -52,11 +79,32 @@ export const testBackend = async () => {
 // AUTHENTICATION
 // =====================================================
 
-export const loginUser = async ({ email, password }) => {
+export const registerCustomer = async (customer) => {
+  return request("/auth/register", {
+    method: "POST",
+    body: JSON.stringify(customer),
+  });
+};
+
+export const loginUser = async (credentials) => {
   return request("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify(credentials),
   });
+};
+
+export const getCurrentUser = async () => {
+  return request("/auth/me");
+};
+
+export const logoutUser = () => {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+
+  // Optional redirect to login page
+  if (window.location.pathname !== "/login") {
+    window.location.href = "/login";
+  }
 };
 
 // =====================================================
@@ -269,29 +317,10 @@ export const getDashboardStats = async () => {
 // PAYMENTS
 // =====================================================
 
-/*
- * Get payment API information.
- */
 export const getPaymentApi = async () => {
   return request("/payments");
 };
 
-/*
- * Submit payment information.
- *
- * payment:
- * {
- *   reservationCode,
- *   paymentMethod,
- *   paymentReference
- * }
- *
- * Supported payment methods:
- * TELEBIRR
- * CBE
- * AWASH
- * DASHEN
- */
 export const submitPayment = async (payment) => {
   const data = await request("/payments/submit", {
     method: "POST",
@@ -301,9 +330,6 @@ export const submitPayment = async (payment) => {
   return data.reservation;
 };
 
-/*
- * Get payment information for a reservation.
- */
 export const getPaymentByReservation = async (
   reservationCode
 ) => {
@@ -316,13 +342,6 @@ export const getPaymentByReservation = async (
   return data.payment;
 };
 
-/*
- * Staff/Admin payment verification.
- *
- * approved:
- * true  = payment accepted
- * false = payment rejected
- */
 export const verifyPayment = async (
   reservationCode,
   approved
@@ -339,5 +358,54 @@ export const verifyPayment = async (
 
   return data.reservation;
 };
+
+// =====================================================
+// VEHICLE INSPECTION
+// =====================================================
+
+export const getVehicleInspections = async () => {
+  const data = await request("/vehicle-inspections");
+
+  return data.inspections || [];
+};
+
+export const createVehicleInspection = async (
+  inspection
+) => {
+  const data = await request(
+    "/vehicle-inspections",
+    {
+      method: "POST",
+      body: JSON.stringify(inspection),
+    }
+  );
+
+  return data.inspection;
+};
+
+export const updateVehicleInspection = async (
+  id,
+  inspection
+) => {
+  const data = await request(
+    `/vehicle-inspections/${id}`,
+    {
+      method: "PUT",
+      body: JSON.stringify(inspection),
+    }
+  );
+
+  return data.inspection;
+};
+
+export const deleteVehicleInspection = async (id) => {
+  return request(`/vehicle-inspections/${id}`, {
+    method: "DELETE",
+  });
+};
+
+// =====================================================
+// EXPORT API URL
+// =====================================================
 
 export default API_URL;

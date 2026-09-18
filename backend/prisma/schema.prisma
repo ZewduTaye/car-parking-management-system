@@ -44,35 +44,29 @@ model ParkingSpace {
 }
 
 model Reservation {
-  id             Int  @id @default(autoincrement())
-  customerId     Int
-  parkingSpaceId Int
-  userId         Int?
-
-  reservationCode String? @unique
-
-  startTime   DateTime
-  endTime     DateTime
-  totalAmount Float             @default(0)
-  status      ReservationStatus @default(PENDING)
-
-  paymentMethod    PaymentMethod?
-  paymentStatus    PaymentStatus  @default(PENDING)
-  paymentReference String?
-  paymentDeadline  DateTime?
-
+  id                Int               @id @default(autoincrement())
+  customerId        Int
+  parkingSpaceId    Int
+  userId            Int?
+  startTime         DateTime
+  endTime           DateTime
+  totalAmount       Float             @default(0)
+  status            ReservationStatus @default(PENDING)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  arrivalTime       DateTime?
+  departureTime     DateTime?
+  paymentDeadline   DateTime?
+  paymentMethod     PaymentMethod?
+  paymentReference  String?
+  paymentStatus     PaymentStatus     @default(PENDING)
+  reservationCode   String?           @unique
   vehicleCondition  VehicleCondition?
-  vehicleNotes      String?
   vehicleFrontPhoto String?
-  vehicleRearPhoto  String?
   vehicleLeftPhoto  String?
+  vehicleNotes      String?
+  vehicleRearPhoto  String?
   vehicleRightPhoto String?
-
-  arrivalTime   DateTime?
-  departureTime DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
   parkingSpace ParkingSpace @relation(fields: [parkingSpaceId], references: [id])
@@ -98,6 +92,7 @@ model VIPReservation {
 enum UserRole {
   ADMIN
   STAFF
+  CUSTOMER
 }
 
 enum ParkingStatus {
